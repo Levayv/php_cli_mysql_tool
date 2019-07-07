@@ -1,5 +1,8 @@
 <?php
 
+require 'private.php';
+
+
 //$argv = $_SERVER[$argv]; // todo useless ? research argv & SuperGlobals
 //var_dump($argv); //todo remove all var_dumbs
 $myArgs;
@@ -70,21 +73,21 @@ function dieD($string){
 }
 function doStuff($args){ // TODO export to separate file ?
     echo " start doing staff \n";
-    mysqli_connect(
-        "localhost",
-        "",
-        "",
-        "",
-        ""
+    $conn = mysqli_connect(
+        DB_HOST,
+        DB_USER,
+        DB_PASS,
+        "testingzone",
+        DB_PORT
     );
-}
-/*
- $count = 0;
-foreach ($valid_args as $item){
-    if ($item == $argv[1]){
-        $count++;
+    if  ($conn  == false){
+        dieD("CONNECTION FAILED");
+    } else{
+        echo "CONNECTION ESTABLISHED - ".mysqli_get_host_info($conn)."\n";
+    }
+    $sql2 = "select * from people;";
+    $result = mysqli_query($conn , $sql2);
+    while ($row = mysqli_fetch_array($result)){
+        var_dump($row);
     }
 }
-if ($count )
-
-    */
