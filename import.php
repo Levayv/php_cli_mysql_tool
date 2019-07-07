@@ -2,18 +2,15 @@
 
 require 'private.php';
 
-
 //$argv = $_SERVER[$argv]; // todo useless ? research argv & SuperGlobals
-//var_dump($argv); //todo remove all var_dumbs
+//todo remove all dumbs
 $myArgs;
 echo "Entry point\n";
 echo "Argument count = $argc \n";
 $valid_args = ["import" , "export"];
-//var_dump($valid_args );
 foreach ($valid_args as &$item){
     $item = "-" . $item;
 }
-//var_dump($valid_args);
 //dieD("YOU SHALL NOT PASS");
 /** check if arguments count is valid , argv[0] is this php file name */
 if ($argc < 2 || $argc > 5){
@@ -86,8 +83,13 @@ function doStuff($args){ // TODO export to separate file ?
         echo "CONNECTION ESTABLISHED - ".mysqli_get_host_info($conn)."\n";
     }
     $sql2 = "select * from people;";
+    $sql2 = "show create table people;";
     $result = mysqli_query($conn , $sql2);
     while ($row = mysqli_fetch_array($result)){
         var_dump($row);
     }
+    $file = fopen("work_dir/test.sql",'w');
+    if (!fwrite($file,"some random string : kjdsfaskdb fasdkljb sadk fbsadkf bsad kfl"))
+        dieD("file error");
+    fclose($file);
 }
