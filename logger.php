@@ -15,9 +15,9 @@ function dieSafely($error_message){
     echo "\n";
     echo "Error: ".$error_message;
     echo "\n";
-    echo "\n";
-    echo "USAGE: php file_name.php import|export ... ";
-    echo "\n";
+//    echo "\n";
+//    echo "USAGE: php file_name.php import|export ... ";
+//    echo "\n";
     die();
 }
 function logger_on(){

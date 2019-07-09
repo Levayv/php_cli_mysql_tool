@@ -28,7 +28,7 @@ function validateUserInput($userInput):array{
 
     $validArgs['task'] = $userInput[1];
     // check 2nd argument - dbname
-    validateDbTableArg($userInput[2]);
+    validateDatabaseName($userInput[2]);
     $validArgs['db_name'] = $userInput[2];
 
     //----------------------------------------------------------------------------------
@@ -39,17 +39,17 @@ function validateUserInput($userInput):array{
     }
     if ($argc-1 == 3) {
 //    echo "case 3 args \n";
-        if (validateFileArg($userInput[3])){
+        if (validateFileName($userInput[3])){
             $validArgs['filename'] = $userInput[3];
         }
         dieSafely ("Missing functionality - 3 argument not supported YET ");
     }
     if ($argc-1 == 4) {
 //    echo "case 4 args \n";
-        if (validateDbTableArg($userInput[3])){
+        if (validateTableNames($userInput[3])){
             $validArgs['table_names'] = $userInput[3];
         }
-        if (validateFileArg($userInput[4])){
+        if (validateFileName($userInput[4])){
             $validArgs['file_name'] = $userInput[4];
         }
     }
@@ -80,12 +80,27 @@ function initDB(){
         log4("Connection established to Mysql Server - ".mysqli_get_host_info($connection));
     }
 }
+/** Check characters in name and check if database exist in MySql Server */
 function validateDatabaseName($database_name):bool{
-    return false;
+    // RegEx check
+    if (preg_match('/[^A-Za-z0-9$_,]/', $database_name)) {
+        dieSafely("Invalid characters in Database name : $database_name ".
+            "(can be one only A-Z , a-z , 0-9 , $ , _ )");
+    }
+    // Mysql check
+    $a = get_table_names("testingzone");
+    var_dump($a);
+    return true;
 }
 function validateTableName($table_name):bool{
     return false;
 }
 function validateTableNames($table_names):bool{
     return false;
+}
+function validateFileName($file_name){
+    if (preg_match('/[^A-Za-z0-9._]/', $file_name)) {
+        dieSafely("Temp: Invalid characters in Table name : $file_name (can be one only A-Z , a-z , 0-9 , . , _ ) \n");
+    }
+    return true;
 }
