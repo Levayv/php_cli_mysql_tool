@@ -3,97 +3,60 @@
 require_once 'credentials.php';
 require_once 'validator.php';
 require_once 'sql_parser.php';
-$verbose = false;
+require_once 'logger.php';
 
+logger_on();
+log4("Entry point");
+log4("Argument count is $argc");
+
+
+$myArgs = validateUserInput($argv);
 // todo remove all dumbs
 // todo replace error handling logic to Exception
 
-if (!isset($argv))
-    dieD("\$argv SuperGlobal not available , use \"-d register_argc_argv=1\" flag for php interpreter ");
 
-if ($verbose) echo "Entry point\n";
-if ($verbose) echo "Argument count = $argc \n";
 
-$valid_args = ["import" , "export"];
-
-/* check if arguments count is valid , argv[0] is this php file name */
-if ($argc < 2 || $argc > 5){
-    dieD("Temp: Invalid argument count: $argc \n");
-}
-// check if argument values are valid
-// check 1st argument - EXPORT or IMPORT
-if (!in_array($argv[1], $valid_args)) {
-    $string = implode(" , ", $valid_args);
-    dieD("Temp: Invalid first argument: $argv[1] (can be one of $string ) \n");
-    //todo parse $valid_args array to single string
-} else { //todo remove else clause
-    echo "good 1st arg \n";
-}
-$myArgs['task'] = $argv[1];
-// check 2nd argument - dbname
-validateDbTableArg($argv[2]);
-$myArgs['db_name'] = $argv[2];
-
-// detect missing arguments and set default values
-if ($argc-1 == 2) {
-//    echo "case 2 args \n";
-    dieD ("Missing functionality - 2 argument not supported YET ");
-}
-if ($argc-1 == 3) {
-//    echo "case 3 args \n";
-    if (validateFileArg($argv[3])){
-        $myArgs['filename'] = $argv[3];
-    }
-    dieD ("Missing functionality - 3 argument not supported YET ");
-}
-if ($argc-1 == 4) {
-//    echo "case 4 args \n";
-    if (validateDbTableArg($argv[3])){
-        $myArgs['table_names'] = $argv[3];
-    }
-    if (validateFileArg($argv[4])){
-        $myArgs['file_name'] = $argv[4];
-    }
-}
 doStuff($myArgs);
 
 function validateDbTableArg($string){
     if (preg_match('/[^A-Za-z0-9$_,]/', $string)) {
-        dieD("Temp: Invalid characters in DB/Table name : $string (can be one only A-Z , a-z , 0-9 , $ , _ ) \n");
+        dieSafely("Temp: Invalid characters in DB/Table name : $string (can be one only A-Z , a-z , 0-9 , $ , _ ) \n");
     }
     return true;
 }
 function validateFileArg($string){
     if (preg_match('/[^A-Za-z0-9._]/', $string)) {
-        dieD("Temp: Invalid characters in Table name : $string (can be one only A-Z , a-z , 0-9 , . , _ ) \n");
+        dieSafely("Temp: Invalid characters in Table name : $string (can be one only A-Z , a-z , 0-9 , . , _ ) \n");
     }
     return true;
 }
-function dieD($string){
-    echo "ERROR: ".$string."\n";
-    echo "USAGE: php file_name.php import|export ... \n";
-    die();
-}
+//function dieSafely($string){
+//    echo "ERROR: ".$string."\n";
+//    echo "USAGE: php file_name.php import|export ... \n";
+//    die();
+//}
 function doStuff($args){ // TODO export to separate file ?
     echo " start doing staff \n";
-    $connection = mysqli_connect(
-        DB_HOST,
-        DB_USER,
-        DB_PASS,
-        "testingzone",
-        DB_PORT
-    );
-    if  ($connection  == false){
-        dieD("CONNECTION FAILED");
-    } else{
-        echo "CONNECTION ESTABLISHED - ".mysqli_get_host_info($connection)."\n";
-    }
+    var_dump($args);
+//    $connection = mysqli_connect(
+//        DB_HOST,
+//        DB_USER,
+//        DB_PASS,
+//        "testingzone",
+//        DB_PORT
+//    );
+//    if  ($connection  == false){
+//        dieSafely("CONNECTION FAILED");
+//    } else{
+//        echo "CONNECTION ESTABLISHED - ".mysqli_get_host_info($connection)."\n";
+//    }
+    global $connection;
     $sql2 = "select * from people;";
     $sql2 = "show create table people;";
     $sql2 = "show tables;";
     $result = mysqli_query($connection , $sql2);
     if ($result == false){
-        dieD("Mysql query is empty");
+        dieSafely("Mysql query is empty");
     }
     $iter=0;
     while ($row = mysqli_fetch_array($result)){
@@ -126,22 +89,21 @@ function doStuff($args){ // TODO export to separate file ?
 //        echo "!!!";
         $result = mysqli_query($connection , $value);
         if ($result == false){
-            dieD("Mysql query is empty for - $value");
+            dieSafely("Mysql query is empty for - $value");
         }
         // for each table get a show create query
         while ($row = mysqli_fetch_array($result)){
-            var_dump($row);
-//            echo "$row[1]\n";
+//            var_dump($row); //todo CHECK ME ASAP
             $table_show_create[$iter] = "$row[1]";
             $iter++;
         }
     }
     $string_to_file = implode(";\n\n# END #\n\n", $table_show_create);
-    echo "\n\n\n".$string_to_file ."\n size = ".count($table_show_create)  ;
+//    echo "\n\n\n".$string_to_file ."\n size = ".count($table_show_create)  ;
     $file = fopen("work_dir/test.sql",'w');
 
     if (!fwrite($file,"$string_to_file"))
-        dieD("file error");
+        dieSafely("file error");
 
     fclose($file);
     echo "\nJob done";
