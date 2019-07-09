@@ -3,8 +3,9 @@
 require 'private.php';
 
 //$argv = $_SERVER[$argv]; // todo useless ? research argv & SuperGlobals
-//todo remove all dumbs
-$myArgs;
+// todo remove all dumbs
+// todo replace error handling logic to Exception
+
 echo "Entry point\n";
 echo "Argument count = $argc \n";
 $valid_args = ["import" , "export"];
@@ -66,30 +67,74 @@ function validateFileArg($string){
     return true;
 }
 function dieD($string){
-    die("\n\n Error: ".$string."\n");
+    die("\n Error: ".$string."\n");
 }
 function doStuff($args){ // TODO export to separate file ?
     echo " start doing staff \n";
-    $conn = mysqli_connect(
+    $connection = mysqli_connect(
         DB_HOST,
         DB_USER,
         DB_PASS,
-        "testingzone",
+        "cm_quansh",
         DB_PORT
     );
-    if  ($conn  == false){
+    if  ($connection  == false){
         dieD("CONNECTION FAILED");
     } else{
-        echo "CONNECTION ESTABLISHED - ".mysqli_get_host_info($conn)."\n";
+        echo "CONNECTION ESTABLISHED - ".mysqli_get_host_info($connection)."\n";
     }
     $sql2 = "select * from people;";
     $sql2 = "show create table people;";
-    $result = mysqli_query($conn , $sql2);
-    while ($row = mysqli_fetch_array($result)){
-        var_dump($row);
+    $sql2 = "show tables;";
+    $result = mysqli_query($connection , $sql2);
+    if ($result == false){
+        dieD("Mysql query is empty");
     }
+    $iter=0;
+    while ($row = mysqli_fetch_array($result)){
+        echo "$row[0]\n";
+        $table_names[$iter] = "$row[0]";
+        $iter++;
+    }
+    $sql_skeleton = "SHOW CREATE TABLE ";
+//    $sql_arr = ['asd',"asd"]; //todo remove
+    foreach ($table_names as $key => $value) {
+        $sql_arr[$key] = $sql_skeleton.$value.";";
+        echo "Sql_arr [$key] = $sql_arr[$key] \n";
+    }
+
+//    $result = mysqli_query($connection , $sql_arr[0]);
+//    if ($result == false){
+//        dieD("Mysql query is empty for - $sql_arr[0]");
+//    }
+
+//    $sql_arr_result;
+    $iter = 0;
+    foreach ($sql_arr as $key => $value) {
+//        $value = "show tables;";
+//        echo "\n!!! $value at $key";
+//        echo "\n!!! $sql_arr[0]";
+//        echo "\n!!! $sql_arr[1]";
+//        echo "\n!!! $sql_arr[2]";
+//        echo "\n!!! $sql_arr[3]";
+//        unset($result);
+//        echo "!!!";
+        $result = mysqli_query($connection , $value);
+        if ($result == false){
+            dieD("Mysql query is empty for - $value");
+        }
+        // for each table get a show create query
+        while ($row = mysqli_fetch_array($result)){
+            var_dump($row);
+//            echo "$row[1]\n";
+            $table_show_create[$iter] = "$row[1]";
+            $iter++;
+        }
+    }
+    $string_to_file = implode(";\n\n# END #\n\n", $table_show_create);
+    echo "\n\n\n".$string_to_file ."\n size = ".count($table_show_create)  ;
     $file = fopen("work_dir/test.sql",'w');
-    if (!fwrite($file,"some random string : kjdsfaskdb fasdkljb sadk fbsadkf bsad kfl"))
+    if (!fwrite($file,"$string_to_file"))
         dieD("file error");
     fclose($file);
 }
