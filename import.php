@@ -1,19 +1,22 @@
 <?php
 
-require 'private.php';
+require_once 'credentials.php';
+require_once 'validator.php';
+require_once 'sql_parser.php';
+$verbose = false;
 
-//$argv = $_SERVER[$argv]; // todo useless ? research argv & SuperGlobals
 // todo remove all dumbs
 // todo replace error handling logic to Exception
 
-echo "Entry point\n";
-echo "Argument count = $argc \n";
+if (!isset($argv))
+    dieD("\$argv SuperGlobal not available , use \"-d register_argc_argv=1\" flag for php interpreter ");
+
+if ($verbose) echo "Entry point\n";
+if ($verbose) echo "Argument count = $argc \n";
+
 $valid_args = ["import" , "export"];
-foreach ($valid_args as &$item){
-    $item = "-" . $item;
-}
-//dieD("YOU SHALL NOT PASS");
-/** check if arguments count is valid , argv[0] is this php file name */
+
+/* check if arguments count is valid , argv[0] is this php file name */
 if ($argc < 2 || $argc > 5){
     dieD("Temp: Invalid argument count: $argc \n");
 }
@@ -67,7 +70,9 @@ function validateFileArg($string){
     return true;
 }
 function dieD($string){
-    die("\n Error: ".$string."\n");
+    echo "ERROR: ".$string."\n";
+    echo "USAGE: php file_name.php import|export ... \n";
+    die();
 }
 function doStuff($args){ // TODO export to separate file ?
     echo " start doing staff \n";
@@ -75,7 +80,7 @@ function doStuff($args){ // TODO export to separate file ?
         DB_HOST,
         DB_USER,
         DB_PASS,
-        "cm_quansh",
+        "testingzone",
         DB_PORT
     );
     if  ($connection  == false){
@@ -134,7 +139,10 @@ function doStuff($args){ // TODO export to separate file ?
     $string_to_file = implode(";\n\n# END #\n\n", $table_show_create);
     echo "\n\n\n".$string_to_file ."\n size = ".count($table_show_create)  ;
     $file = fopen("work_dir/test.sql",'w');
+
     if (!fwrite($file,"$string_to_file"))
         dieD("file error");
+
     fclose($file);
+    echo "\nJob done";
 }
