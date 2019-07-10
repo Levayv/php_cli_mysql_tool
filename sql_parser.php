@@ -63,32 +63,43 @@ function doStuff($args){ // TODO refactor / split
 
 function get_db_names(){
     $sql = "SHOW DATABASES;";
-    $db_names = get_db_or_table_names($sql);
+    $db_names = get_query($sql,null);
     return $db_names;
 }
 function get_table_names($db){
-    var_dump($db);
-    $sql = "USE ".$db."; SHOW TABLES;"; //todo bug asap
-    echo $sql;
-    $table_names = get_db_or_table_names( $sql );
+    $sql1 = "USE ".$db.";";
+    $sql2 = "SHOW TABLES;"; //todo bug asap
+    echo "sql1 = $sql1\n";
+    echo "sql2 = $sql2\n";
+    $table_names = get_query( $sql1 , $sql2);
     return $table_names;
 }
-function get_db_or_table_names($sql1,$sql2){
+function get_query($sql_db,$sql_t){
     global $connection;
-    $result1 = mysqli_query($connection , $sql1);
-    if ($result1 == false){
-        dieSafely("Mysql1 - ".mysqli_error($connection));
-    }
-    $result2 = mysqli_query($connection , $sql2);
-    if ($result2 == false){
-        dieSafely("Mysql2 - ".mysqli_error($connection));
-    }
+    // TODO optimise
+    if (!isset($sql_t)){
+        // case 1 - get database names
+        $result = mysqli_query($connection , $sql_db);
+        if ($result == false){
+            dieSafely("Mysql1 - ".mysqli_error($connection));
+        }
+    }else{
+        // case 2 - get table names
+        $result = mysqli_query($connection , $sql_db);
+        if ($result == false){
+            dieSafely("Mysql1 - ".mysqli_error($connection));
+        }
+        $result  = mysqli_query($connection , $sql_t);
+        if ($result == false){
+            dieSafely("Mysql1 - ".mysqli_error($connection));
+        }
+    } // !!!
     $iter=0;
     $names = null;
-    while ($row = mysqli_fetch_array($result1)){
-        echo "$row[0]\n";
+    while ($row = mysqli_fetch_array($result)){
         $names[$iter] = "$row[0]";
         $iter++;
     }
+    var_dump($row);die("!!! !!!");
     return $names;
 }

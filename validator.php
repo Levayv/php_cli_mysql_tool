@@ -70,7 +70,7 @@ function initDB(){
         DB_HOST,
         DB_USER,
         DB_PASS,
-        "testingzone", //TODO change temp value
+        "cm_quansh", //TODO change temp value
         DB_PORT
     );
     // TODO change DB_USER,DB_HOST,DB_PASS,DB_PORT to assoc-arr
@@ -88,8 +88,8 @@ function validateDatabaseName($database_name):bool{
             "(can be one only A-Z , a-z , 0-9 , $ , _ )");
     }
     // Mysql check
-    $a = get_table_names("testingzone");
-    var_dump($a);
+    $a = get_table_names("cm_quansh");
+//    var_dump($a);die("!!!");
     return true;
 }
 function validateTableName($table_name):bool{
