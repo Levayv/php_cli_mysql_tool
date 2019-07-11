@@ -11,6 +11,9 @@ function validateUserInput($userInput):array{
 //        dieSafely("\$argv SuperGlobal not available, ".
 //            "use \"-d register_argc_argv=1\" flag for php interpreter ");
     initDB();
+    //------------------------------------------------------------------
+    //-- MANDATORY --
+    //------------------------------------------------------------------
     $valid_args = ["import" , "export"];
     // check if arguments count is valid , argv[0] is this php file name
     $argc = count($userInput);
@@ -27,25 +30,28 @@ function validateUserInput($userInput):array{
     }
 
     $validArgs['task'] = $userInput[1];
-    // check 2nd argument - dbname
+    // check 2nd argument - database name
     validateDatabaseName($userInput[2]);
     $validArgs['db_name'] = $userInput[2];
 
-    //----------------------------------------------------------------------------------
-    // detect missing arguments and set default values
-    if ($argc-1 == 2) {
-//    echo "case 2 args \n";
+    //------------------------------------------------------------------
+    //-- OPTIONAL
+    //------------------------------------------------------------------
+    // todo delete me
+
+    if ($argc == 3) {
+        log4("Optional argument missing 2");
         dieSafely ("Missing functionality - 2 argument not supported YET ");
     }
-    if ($argc-1 == 3) {
-//    echo "case 3 args \n";
+    if ($argc == 4) {
+        log4("Optional argument missing 1");
         if (validateFileName($userInput[3])){
             $validArgs['filename'] = $userInput[3];
         }
         dieSafely ("Missing functionality - 3 argument not supported YET ");
     }
-    if ($argc-1 == 4) {
-//    echo "case 4 args \n";
+    if ($argc == 5) {
+        log4("All Optional argument are specified");
         if (validateTableNames($userInput[3])){
             $validArgs['table_names'] = $userInput[3];
         }
@@ -53,7 +59,6 @@ function validateUserInput($userInput):array{
             $validArgs['file_name'] = $userInput[4];
         }
     }
-
     return $validArgs;
 }
 function validateMandatoryArguments(){
@@ -70,7 +75,7 @@ function initDB(){
         DB_HOST,
         DB_USER,
         DB_PASS,
-        "cm_quansh", //TODO change temp value
+        "", //TODO change temp value
         DB_PORT
     );
     // TODO change DB_USER,DB_HOST,DB_PASS,DB_PORT to assoc-arr
@@ -80,7 +85,11 @@ function initDB(){
         log4("Connection established to Mysql Server - ".mysqli_get_host_info($connection));
     }
 }
-/** Check characters in name and check if database exist in MySql Server */
+
+/** Check characters in name and check if database exist in MySql Server
+ * @param $database_name string
+ * @return bool
+ */
 function validateDatabaseName($database_name):bool{
     // RegEx check
     if (preg_match('/[^A-Za-z0-9$_,]/', $database_name)) {
@@ -88,19 +97,58 @@ function validateDatabaseName($database_name):bool{
             "(can be one only A-Z , a-z , 0-9 , $ , _ )");
     }
     // Mysql check
-    $a = get_table_names("cm_quansh");
-//    var_dump($a);die("!!!");
+    $existing_database_names = get_db_names();
+    if (!in_array($database_name , $existing_database_names)){
+        dieSafely("Database with name ($database_name) doesn't exist. ");
+    }
     return true;
 }
-function validateTableName($table_name):bool{
+
+/**
+ * @param $table_name string name to check
+ * @return bool
+ */
+function validateSingleTableName($table_name):bool{
+    if (preg_match('/[^A-Za-z0-9_]/', $table_name)) {
+        dieSafely("Invalid characters in table name : $table_name\n".
+            "       (must contain only Latin letters, numbers or underscore ) \n");
+    }
     return false;
 }
-function validateTableNames($table_names):bool{
-    return false;
+
+/**
+ * @param $table_names_string string table1,table2,table3 to check
+ * @return bool
+ */
+function validateTableNames($table_names_string):bool{ //todo polish me
+//    $table_names_string = "table1,table2,table3";
+//    $table_names_string = "table*1";
+    if (strpos($table_names_string , ",")) {
+//        echo " n comma \n";
+        $table_names_arr = explode(",",$table_names_string);
+        foreach ($table_names_arr as $value){
+            validateSingleTableName($value);
+        }
+    }else{
+//        echo " 0 comma \n";
+        validateSingleTableName($table_names_string);
+    }
+    return true;
 }
 function validateFileName($file_name){
     if (preg_match('/[^A-Za-z0-9._]/', $file_name)) {
-        dieSafely("Temp: Invalid characters in Table name : $file_name (can be one only A-Z , a-z , 0-9 , . , _ ) \n");
+        dieSafely("Invalid characters in file name : $file_name\n".
+            "       (must contain only Latin letters, numbers, dot or underscore ) \n");
+    }
+    // Check if file / folder exist with specified name
+    if (file_exists($file_name)){
+        if (is_dir($file_name)){
+            dieSafely("Folder with the name $file_name already exist, can't create new file");
+        }else{
+            log4("File ($file_name) for export exists "); //todo overwrite ?
+        }
+    }else{
+        log4("File ($file_name) doesn't exist, it will be created");
     }
     return true;
 }

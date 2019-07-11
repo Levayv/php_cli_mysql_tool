@@ -11,7 +11,7 @@ log4("Argument count is $argc");
 
 try{
     $myArgs = validateUserInput($argv);
-    var_dump($myArgs);die();
+//    var_dump($myArgs);die();
     doStuff($myArgs);
 
 }catch (Exception $e){

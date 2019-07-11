@@ -74,11 +74,19 @@ function get_table_names($db){
     $table_names = get_query( $sql1 , $sql2);
     return $table_names;
 }
-function get_query($sql_db,$sql_t){
+
+/**
+ * @param $sql_db string for "USE database_name;" query
+ * @param $sql_t string for "SHOW CREATE TABLE table_name;" query
+ * @return null
+ */
+function get_query($sql_db, $sql_t){
+    //TODO refactor function name
+    //TODO optimise
     global $connection;
-    // TODO optimise
     if (!isset($sql_t)){
         // case 1 - get database names
+        mysqli_real_escape_string($connection , $sql_t);
         $result = mysqli_query($connection , $sql_db);
         if ($result == false){
             dieSafely("Mysql1 - ".mysqli_error($connection));
@@ -93,13 +101,12 @@ function get_query($sql_db,$sql_t){
         if ($result == false){
             dieSafely("Mysql1 - ".mysqli_error($connection));
         }
-    } // !!!
+    }
     $iter=0;
-    $names = null;
+    $names = null; //todo useless ? research
     while ($row = mysqli_fetch_array($result)){
         $names[$iter] = "$row[0]";
         $iter++;
     }
-    var_dump($row);die("!!! !!!");
     return $names;
 }
