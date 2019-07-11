@@ -30,3 +30,12 @@ function logger_switch($bool){
     global $log;
     $log = $bool;
 }
+/**
+ * Var_dump and Die for ease of use
+ * @param $var object for var_dumb( ... )
+ * @param $message string for die( ... )
+ */
+function dd($var , $message ){
+    var_dump($var);
+    dieSafely("[DEBUG] ".$message);
+}
