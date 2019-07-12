@@ -1,6 +1,6 @@
 <?php
 
-require_once 'logger.php';
+require_once 'lib/logger.php';
 /**
  * Validate User input
  * @param $userInput array of arguments inputted by user
@@ -26,13 +26,15 @@ function validateUserInput($userInput):array{
         dieSafely("Temp: Invalid first argument: $userInput[1] (can be one of $string ) \n");
         //todo parse $valid_args array to single string
     } else { //todo remove else clause
-        echo "good 1st arg \n";
     }
 
     $validArgs['task'] = $userInput[1];
+    log4("Validation: 1st arg is OK [task]");
+
     // check 2nd argument - database name
     validateDatabaseName($userInput[2]);
     $validArgs['db_name'] = $userInput[2];
+    log4("Validation: 2nd arg is OK [DB name]");
 
     //------------------------------------------------------------------
     //-- OPTIONAL

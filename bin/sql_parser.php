@@ -1,6 +1,6 @@
 <?php
 
-require_once 'logger.php';
+require_once 'lib/logger.php';
 $connection = null;
 
 function doStuff($args){ // TODO refactor / split

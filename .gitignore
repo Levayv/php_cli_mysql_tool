@@ -1,5 +1,5 @@
 # PHP cli app
 
 .idea
-credentials.php
+/config/credentials.php
 /work_dir/*
