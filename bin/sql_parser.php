@@ -3,104 +3,89 @@
 require_once 'lib/logger.php';
 $connection = null;
 
-function doStuff($args){ // TODO refactor / split
-    global $connection;
-    $sql2 = "show tables;";
-    $result = mysqli_query($connection , $sql2);
-    if ($result == false){
-        dieSafely("Mysql query is empty");
-    }
-    $iter=0;
-    while ($row = mysqli_fetch_array($result)){
-        echo "$row[0]\n";
-        $table_names[$iter] = "$row[0]";
-        $iter++;
-    }
+/**
+ * @param $args
+ */
+function export($args){
+    $table_names = $args['table_names'];
     $sql_skeleton = "SHOW CREATE TABLE ";
-//    $sql_arr = ['asd',"asd"]; //todo remove
-    foreach ($table_names as $key => $value) {
-        $sql_arr[$key] = $sql_skeleton.$value.";";
-        echo "Sql_arr [$key] = $sql_arr[$key] \n";
+    if (!is_array($table_names)){
+        //case 1 single table names
+        $array_buffer[0] = $table_names;
+        $table_names = $array_buffer;
     }
-
-//    $result = mysqli_query($connection , $sql_arr[0]);
-//    if ($result == false){
-//        dieD("Mysql query is empty for - $sql_arr[0]");
+//    // todo overkill --- start --- ???
+//    if (!is_array($table_names)){
+//        dd($table_names , "BUG 1");
 //    }
-
-//    $sql_arr_result;
+//    // todo overkill --- end --- ???
+    foreach ($table_names as $key => $value) {
+        $sql_array[$key] = $sql_skeleton.$value.";";
+    }
     $iter = 0;
-    foreach ($sql_arr as $key => $value) {
-//        $value = "show tables;";
-//        echo "\n!!! $value at $key";
-//        echo "\n!!! $sql_arr[0]";
-//        echo "\n!!! $sql_arr[1]";
-//        echo "\n!!! $sql_arr[2]";
-//        echo "\n!!! $sql_arr[3]";
-//        unset($result);
-//        echo "!!!";
-        $result = mysqli_query($connection , $value);
-        if ($result == false){
-            dieSafely("Mysql query is empty for - $value");
-        }
-        // for each table get a show create query
+    /** @var array $sql_array each row represents table structure recreation query*/
+    foreach ($sql_array as $key => $value) {
+        $result = query_get_something($value);
         while ($row = mysqli_fetch_array($result)){
-//            var_dump($row); //todo CHECK ME ASAP
-            $table_show_create[$iter] = "$row[1]";
+            $table_structure[$iter] = "$row[1]";
             $iter++;
         }
     }
-    $string_to_file = implode(";\n\n# END #\n\n", $table_show_create);
-//    echo "\n\n\n".$string_to_file ."\n size = ".count($table_show_create)  ;
-    $file = fopen("work_dir/test.sql",'w');
-
-    if (!fwrite($file,"$string_to_file"))
+    $delimiter = "; \n\n### END ###\n\n";
+    /** @var array $table_structure */
+    $string_to_write = implode($delimiter, $table_structure);
+    // todo file path validation
+    $file_name = $args['file_name'];
+    $file = fopen("$file_name",'w');
+    if (!fwrite($file,"$string_to_write"))
         dieSafely("file error");
-
     fclose($file);
-    echo "\nJob done";
+
+    log4("Export completed successfully");
+}
+
+/**
+ * @param $sql
+ * @return mysqli_result|bool
+ * For successful SELECT, SHOW, DESCRIBE or EXPLAIN queries, mysqli_query() will return a mysqli_result object.
+ * For other successful queries mysqli_query() will return TRUE.
+ * Returns FALSE on failure.
+ */
+function query_get_something($sql){
+    global $connection;
+    mysqli_real_escape_string($connection , $sql);
+    $result = mysqli_query($connection , $sql);
+    if ($result == false){
+        dieSafely("Mysql1 - ".mysqli_error($connection));
+    }
+    return $result;
 }
 
 function get_db_names(){
     $sql = "SHOW DATABASES;";
-    $db_names = get_query($sql,null);
+    $db_names = query_get_db_or_table_names($sql,null);
     return $db_names;
 }
 function get_table_names($db){
     $sql1 = "USE ".$db.";";
     $sql2 = "SHOW TABLES;"; //todo bug asap
-    echo "sql1 = $sql1\n";
-    echo "sql2 = $sql2\n";
-    $table_names = get_query( $sql1 , $sql2);
+    $table_names = query_get_db_or_table_names( $sql1 , $sql2);
     return $table_names;
 }
 
 /**
  * @param $sql_db string for "USE database_name;" query
  * @param $sql_t string for "SHOW CREATE TABLE table_name;" query
- * @return null
+ * @return array
  */
-function get_query($sql_db, $sql_t){
-    //TODO refactor function name
-    //TODO optimise
-    global $connection;
+function query_get_db_or_table_names($sql_db, $sql_t){
     if (!isset($sql_t)){
         // case 1 - get database names
-        mysqli_real_escape_string($connection , $sql_t);
-        $result = mysqli_query($connection , $sql_db);
-        if ($result == false){
-            dieSafely("Mysql1 - ".mysqli_error($connection));
-        }
+        $result = query_get_something($sql_db);
     }else{
         // case 2 - get table names
-        $result = mysqli_query($connection , $sql_db);
-        if ($result == false){
-            dieSafely("Mysql1 - ".mysqli_error($connection));
-        }
-        $result  = mysqli_query($connection , $sql_t);
-        if ($result == false){
-            dieSafely("Mysql1 - ".mysqli_error($connection));
-        }
+        $result = query_get_something($sql_db);
+        $result  = query_get_something($sql_t);
     }
     $iter=0;
     $names = null; //todo useless ? research

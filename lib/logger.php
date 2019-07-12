@@ -35,7 +35,7 @@ function dieSafely($error_message){
 }
 /**
  * Var_dump and Die for ease of use
- * @param $var object for var_dumb( ... )
+ * @param $var object|array|string for var_dumb( ... )
  * @param $message string for die( ... )
  */
 function dd($var , $message ){
