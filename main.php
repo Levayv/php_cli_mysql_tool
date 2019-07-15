@@ -11,7 +11,12 @@ log4("Argument count is $argc");
 
 try {
     $myArgs = validateUserInput($argv);
-    export($myArgs);
+    $cmd = "task_".$myArgs['task'];
+    if (function_exists($cmd)){
+        $cmd($myArgs);
+    }else{
+        dieSafely("No such task, must be import or export"); // todo change to
+    }
 } catch (Exception $e) { // todo refactor ?
     dieSafely("???");
 }
