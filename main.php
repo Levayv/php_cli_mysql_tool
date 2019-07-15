@@ -14,6 +14,8 @@ try {
     $cmd = "task_".$myArgs['task'];
     if (function_exists($cmd)){
         $cmd($myArgs);
+//        task_export($myArgs);
+//        task_import($myArgs);
     }else{
         dieSafely("No such task, must be import or export"); // todo change to
     }

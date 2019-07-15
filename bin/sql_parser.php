@@ -16,6 +16,7 @@ function task_export($args)
     if ($data_too) {
         export_data($args);
     }
+    log4("Export completed successfully");
 }
 
 function export_data($args)
@@ -78,12 +79,18 @@ function export_structure($args)
     $string_to_write .= $delimiter;
 
     file_truncate($args['file_name']);
+    file_write_append($args['file_name'], get_drop_durrent_db_if_exist_for_export($args['db_name']));
     file_write_append($args['file_name'], $string_to_write);
-    log4("Export completed successfully");
+
 }
 
-function task_import($args){
-    dd("!!! import");
+function task_import($args){ //todo create db in export is missing
+    echo "import start \n";
+//    var_dump($args);
+
+    $data = file_read_all("work_dir//file_name_argument.sql");
+    query_get_something($data);
+    log4("Import completed successfully");
 }
 
 function file_truncate($file_name)
@@ -98,6 +105,10 @@ function file_write_append($file_name, $data)
     if (!fwrite($file, "$data"))
         dieSafely("file error");
     fclose($file);
+}
+function file_read_all($file_name):string{
+    $content = file_get_contents($file_name);
+    return $content;
 }
 
 function build_sql_show_create_table($table_name)
@@ -120,6 +131,7 @@ function build_sql_insert_into($table_name, $data)
         }
     }
     $data = implode(",", $data);
+    $data = mb_convert_encoding($data ,  'UTF-8', 'UTF-8');
     return $sql_skeleton_1 . $table_name . $sql_skeleton_2 . $data . $sql_skeleton_3;
 }
 
@@ -149,6 +161,12 @@ function get_all_rows_data($table)
         $iter++;
     }
     return $data;
+}
+function get_drop_durrent_db_if_exist_for_export($db){ //todo refactor temp solution
+    return "DROP DATABASE IF EXISTS $db;\n\n".
+        "CREATE DATABASE $db;\n\n".
+        "USE $db\n\n";
+//    return "a";
 }
 
 /**
