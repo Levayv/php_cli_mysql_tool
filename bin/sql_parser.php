@@ -8,7 +8,6 @@ $connection = null;
  */
 function task_export($args)
 {
-    dd("!!! export");
     global $data_too;
     export_structure($args);
 
@@ -42,9 +41,11 @@ function export_data($args)
     }
     $string_to_write = implode($delimiter, $array_to_write);
     $string_to_write .= $delimiter;
+    $disable_fkcheck = "SET FOREIGN_KEY_CHECKS=0;\n\n";
+    $enable_fkcheck = "\nSET FOREIGN_KEY_CHECKS=1;\n";
+    file_write_append($args['file_name'], $disable_fkcheck);
     file_write_append($args['file_name'], $string_to_write);
-
-
+    file_write_append($args['file_name'], $enable_fkcheck);
 }
 
 function export_structure($args)
