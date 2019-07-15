@@ -30,9 +30,10 @@ function export_data($args){
         $array_buffer[0] = $table_names;
         $table_names = $array_buffer;
     }
-    $data = get_all_rows_data($table_names[0]);
     $i= 0;
+//    dd($table_names);
     foreach ($table_names as $value_Table) {
+        $data = get_all_rows_data($value_Table);
         foreach ($data as $value_Data) {
             $array_to_write[$i++] = build_sql_insert_into($value_Table , $value_Data);
         }
@@ -42,6 +43,7 @@ function export_data($args){
         dieSafely("BUG function export_data() array_to_write is null");
     }
     $string_to_write = implode($delimiter, $array_to_write);
+    $string_to_write.=$delimiter;
     file_write_append($args['file_name'] , $string_to_write);
 
 
@@ -97,6 +99,7 @@ function build_sql_insert_into($table_name , $data){
     $sql_skeleton_2 = " VALUES (";
     $sql_skeleton_3 = ");";
     foreach ($data as &$item){
+        $item = addslashes($item);
         if ($item == ""){
             $item = "NULL";
         }else{
